@@ -1,0 +1,83 @@
+app-id: org.codelite.Codelite
+runtime: org.gnome.Platform
+sdk: org.gnome.Sdk
+runtime-version: '3.38'
+command: codelite
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --device=dri
+  #- --env=SESSION_MANAGER= # required to avoid Qt warning
+  - --filesystem=home
+  #- --env=PYTHON=python3 cmake .
+  #- --env=PYTHONPATH=/app/packages/python
+  #- --env=PYTHONPATH=/app/lib/python3.8/site-packages
+
+modules:
+  - name: libssh
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts: 
+      -DWITH_GSSAPI=OFF
+      -DWITH_EXAMPLES=OFF
+    sources: 
+      - type: archive
+        url: https://www.libssh.org/files/0.9/libssh-0.9.5.tar.xz
+        sha256: acffef2da98e761fc1fd9c4fddde0f3af60ab44c4f5af05cd1b2d60a3fa08718
+
+  - name: hunspell
+    sources:
+      - type: archive
+        url: https://github.com/hunspell/hunspell/archive/v1.7.0.tar.gz
+        sha256: bb27b86eb910a8285407cf3ca33b62643a02798cf2eef468c0a74f6c3ee6bc8a
+    buildsystem: simple
+    build-commands:
+      - autoreconf -vfi
+      - ./configure --prefix=/app
+      - make -j
+      - make install
+    cleanup:
+      - /bin
+      - /include
+      - /lib/pkgconfig
+      - /lib/*.a
+      - /lib/*.la
+      - /share/man
+
+  - name: sqlite3
+    config-opts: 
+      - --enable-threadsafe
+      - --enable-threads-override-locks
+    build-options: 
+      - cflags: -DSQLITE_ENABLE_UNLOCK_NOTIFY=1
+    sources: 
+      - type: archive
+        url: https://sqlite.org/2020/sqlite-autoconf-3340000.tar.gz
+        sha256: bf6db7fae37d51754737747aaaf413b4d6b3b5fbacd52bdb2d0d6e5b2edd9aee
+    cleanup: 
+      - /bin/sqlite3
+
+  - name: wxWidgets
+    rm-configure: true
+    cleanup:
+      - /bin
+    subdir: ext/wxWidgets
+    sources:
+      - type: archive
+        url: https://files.pythonhosted.org/packages/b0/4d/80d65c37ee60a479d338d27a2895fb15bbba27a3e6bb5b6d72bb28246e99/wxPython-4.1.1.tar.gz
+        sha256: 00e5e3180ac7f2852f342ad341d57c44e7e4326de0b550b9a5c4a8361b6c3528
+      - type: script
+        commands:
+          - cp -p /usr/share/automake-*/config.{sub,guess} .
+          - autoconf -f -B build/autoconf_prepend-include
+
+  - name: codelite      
+    buildsystem: cmake
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCL_PREFIX=/app
+    sources:
+      - type: archive
+        url: https://github.com/eranif/codelite/archive/15.0.tar.gz
+        sha256: 9dd5679660a9d1a51186fcbb2d0d44655f0bc8bedeb2ee57b28c9776f139353f

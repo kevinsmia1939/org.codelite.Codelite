@@ -1,18 +1,21 @@
 app-id: org.codelite.Codelite
-runtime: org.gnome.Platform
+runtime: org.gnome.Sdk
 sdk: org.gnome.Sdk
 runtime-version: '3.38'
 command: codelite
 finish-args:
   - --share=ipc
-  - --socket=x11
+  - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  #- --env=SESSION_MANAGER= # required to avoid Qt warning
   - --filesystem=home
-  #- --env=PYTHON=python3 cmake .
-  #- --env=PYTHONPATH=/app/packages/python
-  #- --env=PYTHONPATH=/app/lib/python3.8/site-packages
+  - --allow=devel
+  - --socket=ssh-auth
+  - --filesystem=home
+  - --filesystem=host
+  - --share=network
+  - --socket=session-bus
+  - --socket=system-bus
 
 modules:
   - name: libssh
@@ -25,38 +28,6 @@ modules:
       - type: archive
         url: https://www.libssh.org/files/0.9/libssh-0.9.5.tar.xz
         sha256: acffef2da98e761fc1fd9c4fddde0f3af60ab44c4f5af05cd1b2d60a3fa08718
-
-  - name: hunspell
-    sources:
-      - type: archive
-        url: https://github.com/hunspell/hunspell/archive/v1.7.0.tar.gz
-        sha256: bb27b86eb910a8285407cf3ca33b62643a02798cf2eef468c0a74f6c3ee6bc8a
-    buildsystem: simple
-    build-commands:
-      - autoreconf -vfi
-      - ./configure --prefix=/app
-      - make -j
-      - make install
-    cleanup:
-      - /bin
-      - /include
-      - /lib/pkgconfig
-      - /lib/*.a
-      - /lib/*.la
-      - /share/man
-
-  - name: sqlite3
-    config-opts: 
-      - --enable-threadsafe
-      - --enable-threads-override-locks
-    build-options: 
-      - cflags: -DSQLITE_ENABLE_UNLOCK_NOTIFY=1
-    sources: 
-      - type: archive
-        url: https://sqlite.org/2020/sqlite-autoconf-3340000.tar.gz
-        sha256: bf6db7fae37d51754737747aaaf413b4d6b3b5fbacd52bdb2d0d6e5b2edd9aee
-    cleanup: 
-      - /bin/sqlite3
 
   - name: wxWidgets
     rm-configure: true

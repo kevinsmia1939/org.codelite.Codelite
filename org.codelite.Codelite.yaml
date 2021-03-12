@@ -8,7 +8,6 @@ finish-args:
   - --socket=fallback-x11
   - --socket=wayland
   - --device=dri
-  - --filesystem=home
   - --allow=devel
   - --socket=ssh-auth
   - --filesystem=home
@@ -31,8 +30,6 @@ modules:
 
   - name: wxWidgets
     rm-configure: true
-    cleanup:
-      - /bin
     subdir: ext/wxWidgets
     sources:
       - type: archive
